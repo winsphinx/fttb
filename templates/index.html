@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FTTB IP 管理</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">FTTB IP 管理</h1>
+
+        <!-- 搜索表单 -->
+        <form id="actionForm" class="mb-4">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <input type="text" class="form-control" name="region" placeholder="区域">
+                </div>
+                <div class="col-md-4">
+                    <input type="text" class="form-control" name="address" placeholder="地址">
+                </div>
+                <div class="col-md-3">
+                    <input type="text" class="form-control" name="ip" placeholder="IP地址">
+                </div>
+                <div class="col-md-2 d-flex justify-content-between">
+                    <button type="button" id="searchBtn" class="btn btn-info w-50 me-2">搜索</button>
+                    <button type="button" id="addBtn" class="btn btn-primary w-50">添加</button>
+                </div>
+            </div>
+            <input type="hidden" id="formAction" name="form_action">
+        </form>
+
+
+        <!-- 记录表格 -->
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th style="width: 10%">ID</th>
+                    <th style="width: 20%">区域</th>
+                    <th style="width: 40%">地址</th>
+                    <th style="width: 20%">IP地址</th>
+                    <th style="width: 10%">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in entries %}
+                <tr>
+                    <td>{{ entry.id }}</td>
+                    <td>{{ entry.region }}</td>
+                    <td>{{ entry.address }}</td>
+                    <td>{{ entry.ip }}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editModal"
+                            data-id="{{ entry.id }}" data-region="{{ entry.region }}" data-address="{{ entry.address }}"
+                            data-ip="{{ entry.ip }}">编辑</button>
+                        <form action="/delete/{{ entry.id }}" method="POST" style="display:inline;">
+                            <button type="submit" class="btn btn-sm btn-danger">删除</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 编辑模态框 -->
+    <div class="modal fade" id="editModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST" action="/edit" id="editForm">
+                    <div class="modal-header">
+                        <h5 class="modal-title">编辑记录</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="id" id="editId">
+                        <div class="mb-3">
+                            <label class="form-label">区域</label>
+                            <input type="text" class="form-control" name="region" id="editRegion" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">地址</label>
+                            <input type="text" class="form-control" name="address" id="editAddress" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">IP地址</label>
+                            <input type="text" class="form-control" name="ip" id="editIp" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="submit" class="btn btn-primary">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 编辑模态框数据加载
+        document.getElementById('editModal').addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            document.getElementById('editId').value = button.getAttribute('data-id');
+            document.getElementById('editRegion').value = button.getAttribute('data-region');
+            document.getElementById('editAddress').value = button.getAttribute('data-address');
+            document.getElementById('editIp').value = button.getAttribute('data-ip');
+            document.getElementById('editForm').action = `/edit/${button.getAttribute('data-id')}`;
+        });
+
+        document.getElementById('searchBtn').addEventListener('click', function () {
+            const form = document.getElementById('actionForm');
+            form.method = 'GET';
+            form.action = '/';
+            document.getElementById('formAction').value = 'search';
+            form.submit();
+        });
+
+        document.getElementById('addBtn').addEventListener('click', function () {
+            const form = document.getElementById('actionForm');
+            const region = form.elements['region'].value.trim();
+            const address = form.elements['address'].value.trim();
+            const ip = form.elements['ip'].value.trim();
+
+            // 验证三个字段是否齐全
+            if (!region || !address || !ip) {
+                alert('错误：添加记录需要区域、地址和IP三个字段齐全');
+                return false;
+            }
+
+            form.method = 'POST';
+            form.action = '/';
+            document.getElementById('formAction').value = 'add';
+            form.submit();
+        });
+    </script>
+</body>
+
+</html>
