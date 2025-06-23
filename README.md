@@ -29,6 +29,7 @@ fttb/
 ├── pyproject.toml     # 项目配置
 ├── templates/         # 模板目录
 │   └── index.html     # 首页模板
+│   └── login.html     # 登录模板
 ├── instance/          # 数据库目录
 │   └── fttb.db        # 数据库文件
 └── README.md          # 项目文档

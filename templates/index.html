@@ -55,7 +55,14 @@
 
 <body>
     <div class="container mt-5">
-        <h1 class="mb-4">FTTB IP 管理</h1>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>FTTB IP 管理</h1>
+            <div>
+                <button type="button" class="btn btn-info me-2" data-bs-toggle="modal"
+                    data-bs-target="#userModal">用户管理</button>
+                <a href="/logout" class="btn btn-secondary">登出</a>
+            </div>
+        </div>
 
         <!-- 搜索表单 -->
         <form id="actionForm" class="mb-4">
@@ -139,6 +146,58 @@
                         <button type="submit" class="btn btn-primary">保存</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 用户管理模态框 -->
+    <div class="modal fade" id="userModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">用户管理</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>用户名</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td>{{ user.id }}</td>
+                                <td>{{ user.username }}</td>
+                                <td>
+                                    <form action="/delete_user/{{ user.id }}" method="POST" style="display:inline;">
+                                        <button type="submit" class="btn btn-sm btn-danger">删除</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <hr>
+                    <h5>添加用户</h5>
+                    <form method="POST" action="/add_user">
+                        <div class="mb-3">
+                            <label class="form-label">用户名</label>
+                            <input type="text" class="form-control" name="username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">密码</label>
+                            <input type="password" class="form-control" name="password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">添加用户</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                </div>
             </div>
         </div>
     </div>

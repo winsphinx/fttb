@@ -1,11 +1,12 @@
 import uvicorn
 from asgiref.wsgi import WsgiToAsgi
-from flask import Flask, redirect, render_template, request, url_for
+from flask import Flask, flash, redirect, render_template, request, session, url_for
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///fttb.db"
+app.config["SECRET_KEY"] = "your_secret_key"  # 用于会话安全
 db = SQLAlchemy(app)
 
 
@@ -21,8 +22,80 @@ class DatabaseModel(db.Model):
         self.ip = ip
 
 
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), unique=True, nullable=False)
+    password = db.Column(db.String(100), nullable=False)
+
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+        user = User.query.filter_by(username=username).first()
+        if user and user.password == password:
+            session["logged_in"] = True
+            return redirect(url_for("index"))
+        else:
+            flash("用户名或密码错误")
+    return render_template("login.html")
+
+
+@app.route("/users")
+def user_management():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+    users = User.query.all()
+    return render_template("index.html", users=users)
+
+
+@app.route("/add_user", methods=["POST"])
+def add_user():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+    username = request.form.get("username")
+    password = request.form.get("password")
+    if not username or not password:
+        flash("用户名和密码不能为空")
+        return redirect(url_for("index"))
+
+    if User.query.filter_by(username=username).first():
+        flash("用户名已存在")
+        return redirect(url_for("index"))
+
+    new_user = User(username=username, password=password)
+    db.session.add(new_user)
+    db.session.commit()
+    return redirect(url_for("index"))
+
+
+@app.route("/delete_user/<int:id>", methods=["POST"])
+def delete_user(id):
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+    user = User.query.get_or_404(id)
+    db.session.delete(user)
+    db.session.commit()
+    return redirect(url_for("index"))
+
+
+@app.route("/logout")
+def logout():
+    session.pop("logged_in", None)
+    return redirect(url_for("login"))
+
+
 @app.route("/", methods=["GET", "POST"])
 def index():
+    # 检查登录状态
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
     if request.method == "POST":
         form_action = request.form.get("form_action")
         if form_action == "add":
@@ -60,9 +133,11 @@ def index():
         query = query.filter(text("ip LIKE :ip")).params(ip=f"%{ip_filter}%")
 
     entries = query.all()
+    users = User.query.all()
     return render_template(
         "index.html",
         entries=entries,
+        users=users,
         region_filter=region_filter,
         address_filter=address_filter,
         ip_filter=ip_filter,
@@ -98,6 +173,21 @@ def delete_database(id):
 # 初始化数据库表
 with app.app_context():
     db.create_all()
+    print("Database tables created")
+
+    # 添加默认管理员用户（如果不存在）
+    admin_exists = User.query.filter_by(username="admin").first()
+    if not admin_exists:
+        admin_user = User(username="admin", password="Password")
+        db.session.add(admin_user)
+        db.session.commit()
+        print("Default admin user created")
+    else:
+        print("Admin user already exists")
+
+    # 打印用户数量
+    user_count = User.query.count()
+    print(f"Total users in database: {user_count}")
 
 # 包装为 ASGI 应用
 asgi_app = WsgiToAsgi(app)
