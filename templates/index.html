@@ -55,7 +55,7 @@
                         <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editModal"
                             data-id="{{ entry.id }}" data-region="{{ entry.region }}" data-address="{{ entry.address }}"
                             data-ip="{{ entry.ip }}">编辑</button>
-                        <form action="/delete/{{ entry.id }}" method="POST" style="display:inline;">
+                        <form action="/delete/{{ entry.id }}" method="POST" style="display:inline;" class="delete-form">
                             <button type="submit" class="btn btn-sm btn-danger">删除</button>
                         </form>
                     </td>
@@ -163,6 +163,15 @@
             form.action = '/';
             document.getElementById('formAction').value = 'add';
             form.submit();
+        });
+
+        // 删除确认功能
+        document.querySelectorAll('.delete-form').forEach(form => {
+            form.addEventListener('submit', function (e) {
+                if (!confirm('确定要删除这条记录吗？')) {
+                    e.preventDefault();
+                }
+            });
         });
     </script>
 </body>
