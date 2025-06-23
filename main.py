@@ -1,3 +1,5 @@
+import uvicorn
+from asgiref.wsgi import WsgiToAsgi
 from flask import Flask, redirect, render_template, request, url_for
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text
@@ -97,5 +99,8 @@ def delete_database(id):
 with app.app_context():
     db.create_all()
 
+# 包装为 ASGI 应用
+asgi_app = WsgiToAsgi(app)
+
 if __name__ == "__main__":
-    app.run(debug=False)
+    uvicorn.run("main:asgi_app", host="0.0.0.0", port=5000)
