@@ -6,6 +6,51 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FTTB IP 管理</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* 页面背景色 */
+        body {
+            background-color: #DFF2E9;
+        }
+
+        /* 输入框背景色 */
+        .form-control {
+            background-color: #F4F6F6;
+        }
+
+        /* 修复：覆盖 Bootstrap 的默认表格背景，使其透明 */
+        .table {
+            --bs-table-bg: transparent;
+            --bs-table-accent-bg: transparent;
+            border-color: #CDDED5;
+        }
+
+        /* 表头背景色 */
+        .table thead th {
+            background-color: #DBEEE5;
+        }
+
+        /* 奇数行背景色 */
+        .table tbody tr:nth-child(odd) {
+            background-color: #E7F4EE;
+        }
+
+        /* 偶数行背景色 */
+        .table tbody tr:nth-child(even) {
+            background-color: #DBEEE5;
+        }
+
+        /* 对话框框内容背景色 */
+        .modal-content {
+            background-color: #DFF2E9;
+        }
+
+        /* 框头部和底部背景色 */
+        .modal-header,
+        .modal-footer {
+            background-color: #DBEEE5;
+            border-color: #CDDED5;
+        }
+    </style>
 </head>
 
 <body>
@@ -34,7 +79,7 @@
 
 
         <!-- 记录表格 -->
-        <table class="table table-striped">
+        <table class="table">
             <thead>
                 <tr>
                     <th style="width: 10%">ID</th>
