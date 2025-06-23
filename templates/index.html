@@ -100,6 +100,19 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // IP地址格式验证函数
+        function isValidIP(ip) {
+            const parts = ip.split('.');
+            if (parts.length !== 4) return false;
+
+            for (let i = 0; i < 4; i++) {
+                const num = parseInt(parts[i], 10);
+                if (isNaN(num) || num < 0 || num > 255) return false;
+                if (num.toString() !== parts[i]) return false; // 检查前导零
+            }
+            return true;
+        }
+
         // 编辑模态框数据加载
         document.getElementById('editModal').addEventListener('show.bs.modal', function (event) {
             const button = event.relatedTarget;
@@ -108,6 +121,16 @@
             document.getElementById('editAddress').value = button.getAttribute('data-address');
             document.getElementById('editIp').value = button.getAttribute('data-ip');
             document.getElementById('editForm').action = `/edit/${button.getAttribute('data-id')}`;
+        });
+
+        // 编辑表单提交事件
+        document.getElementById('editForm').addEventListener('submit', function (e) {
+            const ip = document.getElementById('editIp').value.trim();
+
+            if (!isValidIP(ip)) {
+                alert('错误：IP地址格式无效，请输入有效的IPv4地址。');
+                e.preventDefault(); // 阻止表单提交
+            }
         });
 
         document.getElementById('searchBtn').addEventListener('click', function () {
@@ -127,6 +150,12 @@
             // 验证三个字段是否齐全
             if (!region || !address || !ip) {
                 alert('错误：添加记录需要区域、地址和IP三个字段齐全');
+                return false;
+            }
+
+            // 验证IP地址格式
+            if (!isValidIP(ip)) {
+                alert('错误：IP地址格式无效，请输入有效的IPv4地址。');
                 return false;
             }
 
