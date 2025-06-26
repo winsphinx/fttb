@@ -2,8 +2,8 @@ name: Build and Push Docker Image
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - v*.*.*
 
 jobs:
   build:
@@ -33,11 +33,3 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           tags: ghcr.io/winsphinx/fttb:latest
-
-      - name: Cleanup histories
-        uses: Mattraks/delete-workflow-runs@v2
-        with:
-          token: ${{ github.token }}
-          repository: ${{ github.repository }}
-          retain_days: 30
-          keep_minimum_runs: 0
