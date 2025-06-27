@@ -8,6 +8,11 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import String, cast
 from werkzeug.security import check_password_hash, generate_password_hash
 
+app = Flask(__name__)
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///fttb.db"
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "your_fallback_secret_key")
+db = SQLAlchemy(app)
+
 
 def login_required(f):
     @wraps(f)
@@ -17,12 +22,6 @@ def login_required(f):
         return f(*args, **kwargs)
 
     return decorated_function
-
-
-app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///fttb.db"
-app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "your_fallback_secret_key")
-db = SQLAlchemy(app)
 
 
 class DatabaseModel(db.Model):
