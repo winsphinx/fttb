@@ -13,18 +13,6 @@
 - 用户认证和管理
 - 响应式设计，适配不同设备
 
-## 安装依赖
-
-```bash
-uv sync
-```
-
-## 运行项目
-
-```bash
-uv run main.py
-```
-
 ## 项目结构
 
 ```
@@ -40,6 +28,24 @@ fttb/
 ├── README.md          # 项目文档
 ├── Dockerfile         # Docker 部署配置
 └── uv.lock            # 依赖锁定文件
+```
+
+## 运行项目
+
+### Python
+
+```bash
+# 安装
+pip install uv
+uv sync
+# 运行
+uv run main.py
+```
+
+### Docker
+
+```bash
+docker run -d -p 5000:5000 -v ./data:/app/instance --name=fttb ghcr.io/winsphinx/fttb:latest
 ```
 
 ## 许可证
