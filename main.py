@@ -1,9 +1,20 @@
+import csv
+import io
 import os
 from functools import wraps
 
 import uvicorn
 from asgiref.wsgi import WsgiToAsgi
-from flask import Flask, flash, redirect, render_template, request, session, url_for
+from flask import (
+    Flask,
+    flash,
+    redirect,
+    render_template,
+    request,
+    send_file,
+    session,
+    url_for,
+)
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import String, cast
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -153,6 +164,77 @@ def index():
         region_filter=region_filter,
         address_filter=address_filter,
         ip_filter=ip_filter,
+    )
+
+
+@app.route("/import", methods=["POST"])
+@login_required
+def import_csv():
+    if "csv_file" not in request.files:
+        flash("没有文件部分")
+        return redirect(url_for("index"))
+    file = request.files["csv_file"]
+    if not file or file.filename == "":
+        flash("没有选择文件")
+        return redirect(url_for("index"))
+    if file.filename and file.filename.endswith(".csv"):
+        try:
+            stream = io.TextIOWrapper(file.stream, encoding="utf-8")
+            csv_reader = csv.reader(stream)
+            header = next(csv_reader)  # 跳过标题行
+
+            # 检查CSV文件头是否符合预期
+            expected_header = ["region", "address", "ip"]
+            if not all(h in header for h in expected_header):
+                flash("CSV文件头要求是 'id', 'region', 'address', 'ip' 四列。")
+                return redirect(url_for("index"))
+
+            # 获取列的索引
+            region_idx = header.index("region")
+            address_idx = header.index("address")
+            ip_idx = header.index("ip")
+
+            for row in csv_reader:
+                if len(row) > max(region_idx, address_idx, ip_idx):
+                    region = row[region_idx].strip()
+                    address = row[address_idx].strip()
+                    ip = row[ip_idx].strip()
+
+                    if region and address and ip:
+                        new_entry = DatabaseModel(region=region, address=address, ip=ip)
+                        db.session.add(new_entry)
+            db.session.commit()
+            flash("CSV 文件导入成功！")
+        except Exception as e:
+            db.session.rollback()
+            flash(f"导入 CSV 文件时发生错误: {str(e)}")
+    else:
+        flash("无效的文件类型，请上传 CSV 文件。")
+    return redirect(url_for("index"))
+
+
+@app.route("/export", methods=["GET"])
+@login_required
+def export_csv():
+    si = io.StringIO()
+    cw = csv.writer(si)
+
+    # 写入 CSV 头部
+    cw.writerow(["id", "region", "address", "ip"])
+
+    # 从数据库获取所有数据
+    entries = db.session.execute(db.select(DatabaseModel)).scalars().all()
+    for entry in entries:
+        cw.writerow([entry.id, entry.region, entry.address, entry.ip])
+
+    output = io.BytesIO(si.getvalue().encode("utf-8-sig"))
+    output.seek(0)
+
+    return send_file(
+        output,
+        mimetype="text/csv; charset=utf-8-sig",
+        download_name="fttb_ip_data.csv",
+        as_attachment=True,
     )
 
 
